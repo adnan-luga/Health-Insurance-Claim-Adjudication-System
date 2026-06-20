@@ -1,0 +1,33 @@
+# List of keywords for section splitting [Layer 1]
+table_of_benefits:
+  - "table of benefit"
+  - "schedule of benefit"
+  - "what we pay"
+  - "cover summary"
+  - "schedule a"
+  - "benefit table"
+exclusions:
+  - "exclusion"
+  - "not covered"
+  - "what is not covered"
+  - "limitation"
+  - "carve-out"
+  - "general exclusion"
+general_conditions:
+  - "general condition"
+  - "conditions of cover"
+  - "policy condition"
+  - "claims procedure"
+  - "general provision"
+definitions:
+  - "definition"
+  - "meaning"
+  - "interpretation"
+  - "glossary"
+endorsements:
+  - "endorsement"
+  - "amendment"
+  - "rider"
+  - "addendum"
+  - "special condition"
+  - "notwithstanding"
