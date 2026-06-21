@@ -83,4 +83,16 @@ Once the containers are running, navigate to the Streamlit UI in your browser:
 - **AI Extraction**: `instructor` with OpenAI
 - **Package Management**: `uv`
 
+
+
+If you want to drop a posgres table use the following docker command:
+
 docker exec -it polices_db psql -U admin -d policies -c "TRUNCATE TABLE policy_rulesets;";     
+
+TO DO:
+ - Add more test cases and scenarios
+ - Use LLM Extractor to extract policy inception date? Or it will be fetched from a database?
+ - Clean the code
+ - 
+
+You can follow logs in Docker containers as well.

@@ -248,10 +248,12 @@ class AdjudicationEngine:
         deductible_applied = deductible_applied.quantize(TWOPLACES)
         insurer_pays = insurer_pays.quantize(TWOPLACES)
         member_owes = member_owes.quantize(TWOPLACES)
+        
+        base_coinsurance = (member_coinsurance - penalty).quantize(TWOPLACES)
 
         audit_trail.append(AuditLine(
             step="final_calculation", 
-            description=f"Final Calculation. Member owes: AED {above_limit_portion.quantize(TWOPLACES)} (over limit) + AED {deductible_applied} (deductible) + AED {member_coinsurance.quantize(TWOPLACES)} (coinsurance) + AED {penalty.quantize(TWOPLACES)} (penalty) = AED {member_owes}. Insurer pays: AED {insurer_pays}.", 
+            description=f"Final Calculation. Member owes: AED {above_limit_portion.quantize(TWOPLACES)} (over limit) + AED {deductible_applied} (deductible) + AED {base_coinsurance} (coinsurance) + AED {penalty.quantize(TWOPLACES)} (penalty) = AED {member_owes}. Insurer pays: AED {insurer_pays}.", 
             value_applied=member_owes,
             running_eligible_amount=after_deductible.quantize(TWOPLACES)
         ))
