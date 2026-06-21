@@ -1,0 +1,78 @@
+{
+  "member_id": "Mr. A. Karim",
+  "policy_year": "2025",
+  "claims": [
+    {
+      "claim_id": "C1",
+      "billed_amount": 300.0,
+      "eligible_amount": 300.0,
+      "deductible": 50.0,
+      "coinsurance": 25.0,
+      "insurer_paid": 225.0,
+      "member_paid": 75.0,
+      "decision": "PARTIALLY_APPROVED",
+      "reason": "Covered under Outpatient Consultation (In-Network)"
+    },
+    {
+      "claim_id": "C2",
+      "billed_amount": 400.0,
+      "eligible_amount": 0.0,
+      "deductible": 0.0,
+      "coinsurance": 0.0,
+      "insurer_paid": 0.0,
+      "member_paid": 400.0,
+      "decision": "DENIED",
+      "reason": "Exclusion 4.2 - Chronic/Pre-existing Condition waiting period (first 6 months)"
+    },
+    {
+      "claim_id": "C3",
+      "billed_amount": 400.0,
+      "eligible_amount": 400.0,
+      "deductible": 50.0,
+      "coinsurance": 35.0,
+      "insurer_paid": 315.0,
+      "member_paid": 85.0,
+      "decision": "PARTIALLY_APPROVED",
+      "reason": "Covered (waiting period expired after 6 months)"
+    },
+    {
+      "claim_id": "C4",
+      "billed_amount": 3000.0,
+      "eligible_amount": 3000.0,
+      "deductible": 0.0,
+      "coinsurance": 300.0,
+      "insurer_paid": 2700.0,
+      "member_paid": 300.0,
+      "decision": "PARTIALLY_APPROVED",
+      "reason": "Covered under Endorsement E1 Physiotherapy Enhancement (10% coinsurance)"
+    },
+    {
+      "claim_id": "C5",
+      "billed_amount": 18000.0,
+      "eligible_amount": 18000.0,
+      "deductible": 0.0,
+      "coinsurance": 0.0,
+      "insurer_paid": 14400.0,
+      "member_paid": 3600.0,
+      "decision": "PARTIALLY_APPROVED",
+      "reason": "Covered, but subject to 20% penalty (AED 3,600) due to missing Pre-authorisation (GC-3)"
+    },
+    {
+      "claim_id": "C6",
+      "billed_amount": 500.0,
+      "eligible_amount": 0.0,
+      "deductible": 0.0,
+      "coinsurance": 0.0,
+      "insurer_paid": 0.0,
+      "member_paid": 500.0,
+      "decision": "DENIED",
+      "reason": "Prescribed Medication not covered for Out-of-Network"
+    }
+  ],
+  "totals": {
+    "billed_amount": 22600.0,
+    "eligible_amount": 21700.0,
+    "insurer_paid": 17640.0,
+    "member_paid": 4960.0
+  }
+}

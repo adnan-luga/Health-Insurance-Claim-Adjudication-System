@@ -4,7 +4,7 @@ from typing import List, Optional
 from ingestion.extraction.schemas import CoverageRule, PolicyRuleSet
 from adjudication.schemas import AuditLine, ClaimEvent, AdjudicationResult, ClaimBatch, ClaimBatchResult
 from adjudication.tracker import PolicyTracker
-
+from datetime import date
 
 class AdjudicationEngine:
     """Core deterministic engine for processing claims"""
@@ -16,7 +16,7 @@ class AdjudicationEngine:
         sorted_claims = sorted(batch.claims, key=lambda c: c.date)
 
         for claim in sorted_claims:
-            result = self._process_claim(claim, ruleset, tracker)
+            result = self._process_claim(claim, ruleset, tracker, batch.policy_year_start)
             results.append(result)
 
         return ClaimBatchResult(
@@ -28,7 +28,7 @@ class AdjudicationEngine:
             total_member_paid=sum(r.member_owes for r in results)
         )
     
-    def _process_claim(self, claim: ClaimEvent, ruleset: PolicyRuleSet, tracker: PolicyTracker) -> AdjudicationResult:
+    def _process_claim(self, claim: ClaimEvent, ruleset: PolicyRuleSet, tracker: PolicyTracker, policy_year_start: date) -> AdjudicationResult:
         audit_trail: List[AuditLine] = []
         billed = claim.billed_amount
         eligible_amount = billed
@@ -50,6 +50,18 @@ class AdjudicationEngine:
         for exclusion in ruleset.exclusions:
             keywords = exclusion.keywords or []
             if any(kw.lower() in claim.description.lower() for kw in keywords):
+                # Check if exclusion has expired for this claim date
+                if exclusion.expires_after_days:
+                    days_since_inception = (claim.date - policy_year_start).days
+                    if days_since_inception > exclusion.expires_after_days:
+                        audit_trail.append(AuditLine(
+                            step="exclusion_check",
+                            description=f"Matched exclusion keyword for '{exclusion.description}', but waiting period of {exclusion.expires_after_days} days has expired.",
+                            value_applied=None,
+                            running_eligible_amount=eligible_amount
+                        ))
+                        continue
+
                 applies = exclusion.applies_to_benefits or []
                 if "*" in applies or claim.benefit_code in applies:
                     audit_trail.append(AuditLine(
@@ -227,7 +239,8 @@ class AdjudicationEngine:
 
         # Step 9: Total Calculation
         above_limit_portion = billed - eligible_amount
-        member_owes = above_limit_portion + deductible_applied + member_coinsurance + penalty
+        # member_coinsurance already includes the penalty (if any) from Step 8
+        member_owes = above_limit_portion + deductible_applied + member_coinsurance
         
         # Round final monetary results to 2 decimals
         TWOPLACES = Decimal("0.01")

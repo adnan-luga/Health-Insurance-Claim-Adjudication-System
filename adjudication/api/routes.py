@@ -29,15 +29,22 @@ async def process_pdf_invoice(
 ):
     file_bytes = await file.read()
     
+    # Fetch ruleset FIRST to dynamically feed valid benefit codes to the parser
+    ruleset = await store.get_latest(policy_id)
+    if not ruleset:
+        # Fallback if policy not found (let engine handle it or return error)
+        valid_codes = []
+    else:
+        valid_codes = list(set(r.benefit_code for r in ruleset.coverage_rules if r.benefit_code != "ANNUAL_LIMIT"))
+        
     batch = await invoice_parser.parse_pdf_invoice(
         file_bytes=file_bytes,
         batch_id=f"BATCH-{file.filename}",
         policy_id=policy_id,
         member_id=member_id,
         year_start="2026-01-01",
-        year_end="2026-12-31"
+        year_end="2026-12-31",
+        valid_benefit_codes=valid_codes
     )
-    
-    ruleset = await store.get_latest(batch.policy_id)
     
     return engine.adjudicate_batch(ruleset=ruleset, batch=batch)

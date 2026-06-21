@@ -19,12 +19,8 @@ ABSOLUTE RULES — VIOLATION MAKES THE OUTPUT USELESS:
    - If you cannot find a precise amount for a line item, OMIT that line item entirely.
    - FORBIDDEN: inventing amounts, averaging amounts, or copying the total from another line.
 2. Each line item in the invoice MUST become exactly ONE ClaimEvent. Do NOT merge or split line items.
-3. For 'benefit_code', map the described service to the CLOSEST standard policy category:
-   - OUTPATIENT_CONSULTATION: GP visits, specialist consultations, clinic appointments
-   - PHYSIOTHERAPY: physiotherapy, physical therapy, rehabilitation sessions
-   - DIAGNOSTICS_LAB_IMAGING: blood tests, X-rays, MRI, CT scans, lab work
-   - PRESCRIBED_MEDICATION_PHARMACY: drugs, medications, pharmacy dispensed items
-   - INPATIENT_SURGERY: surgical procedures, hospital admissions
+3. For 'benefit_code', map the described service to the CLOSEST category from the provided valid list below. Do NOT invent new codes.
+   Valid Codes: {valid_codes_str}
 4. For 'network_type': look for the words "in-network", "out-of-network", "panel", or "non-panel". If absent, use "in-network".
 5. 'description' must be a verbatim copy of the service name from the invoice - do not paraphrase.
 6. 'date' must be the exact service date from the invoice in ISO 8601 format (YYYY-MM-DD).
@@ -49,17 +45,21 @@ class ClaimParser:
         policy_id: str,
         member_id: str,
         year_start: str,
-        year_end: str
+        year_end: str,
+        valid_benefit_codes: list[str]
     ) -> ClaimBatch:
         log.info("claim_parser.reading_pdf", batch_id=batch_id)
 
         parsed_doc = await asyncio.to_thread(self.doc_parser.parse, file_bytes)
         claim_text = "\n".join([sec.raw_markdown for sec in parsed_doc.sections])
 
+        valid_codes_str = ", ".join(valid_benefit_codes) if valid_benefit_codes else "UNKNOWN"
+        dynamic_system_prompt = CLAIM_EXTRACTION_PROMPT.format(valid_codes_str=valid_codes_str)
+
         log.info(
             "claim_parser.llm_call.start",
             model=self.model_name,
-            system_prompt_chars=len(CLAIM_EXTRACTION_PROMPT),
+            system_prompt_chars=len(dynamic_system_prompt),
             user_content_chars=len(claim_text),
         )
 
@@ -67,7 +67,7 @@ class ClaimParser:
         if os.getenv("LOG_PROMPTS", "").lower() == "true":
             log.debug(
                 "claim_parser.llm_call.prompt_in",
-                system_prompt=CLAIM_EXTRACTION_PROMPT,
+                system_prompt=dynamic_system_prompt,
                 user_content=f"Extract line items from this invoice:\n\n{claim_text}",
             )
 
@@ -75,7 +75,7 @@ class ClaimParser:
             model=self.model_name,
             response_model=ClaimBatch,
             messages=[
-                {"role": "system", "content": CLAIM_EXTRACTION_PROMPT},
+                {"role": "system", "content": dynamic_system_prompt},
                 {"role": "user", "content": f"Transcribe EXACTLY the line items from this invoice — do not invent or round any amounts:\n\n{claim_text}"}
             ],
             temperature=0.0,

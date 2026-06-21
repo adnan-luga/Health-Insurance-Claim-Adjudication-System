@@ -79,6 +79,7 @@ class Exclusion(BaseModel):
     applies_to_benefits: list[str] # benefit_codes, [*] for all
     hard_exclude: bool = True # True = deny; False = reduce benefit
     reduction_factor: Optional[Decimal] = None # If hard_exclude = False
+    expires_after_days: Optional[int] = None # For waiting periods (e.g., 6 months = 180 days)
     verbatim_text: str
     provenance: Optional[Provenance] = None
 

@@ -46,7 +46,8 @@ ABSOLUTE RULES:
 3. The 'keywords' list must contain literal terms that appear in a medical claim (e.g., "rhinoplasty", "cosmetic surgery"). Do not use legal paraphrasing.
 4. Set 'applies_to_benefits' to ["*"] ONLY if the exclusion text explicitly says it applies to ALL benefits. Otherwise, list only the specific benefit codes it affects.
 5. Set 'hard_exclude=True' only if the text uses words like "excluded", "not covered", "shall not apply". Set to False for reductions.
-6. Do not group separate exclusions into one entry unless the text explicitly groups them.
+6. If the exclusion is temporary (e.g. a waiting period for the first 6 months), set 'expires_after_days' to the equivalent in days (e.g. 180). Otherwise, leave it null.
+7. Do not group separate exclusions into one entry unless the text explicitly groups them.
 """
 
 ENDORSEMENTS_SYSTEM_PROMPT = """
