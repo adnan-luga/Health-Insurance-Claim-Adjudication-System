@@ -5,7 +5,7 @@ from docling_core.types.doc import SectionHeaderItem
 from docling_core.types.doc import DoclingDocument
 from tokenizers.implementations import byte_level_bpe
 from dataclasses import dataclass
-from click import Path
+from pathlib import Path
 import hashlib
 from docling.document_converter import PdfFormatOption
 from docling.document_converter import DocumentConverter
@@ -103,12 +103,12 @@ class DocumentParser:
                 # Export table as both Markdown and JSON
                 table_dict = {
                     "markdown":item.export_to_markdown(doc),
-                    "dataframe":item.export_to_dataframe().to_dict(orient="records"),
-                    "cells":self._extract_table_cells(item),
+                    "dataframe":item.export_to_dataframe(doc).to_dict(orient="records"),
+                    "cells":self._extract_table_cells(item, doc),
                     "confidence":getattr(item, "confidence", 1.0),
                 }
                 tables.append(table_dict)
-                text_parts.append(item.export_to_markdown())
+                text_parts.append(item.export_to_markdown(doc))
             
             elif isinstance(item, TextItem):
                 text_parts.append(item.text)
@@ -229,10 +229,10 @@ class DocumentParser:
         
         return metadata
     
-    def _extract_table_cells(self, table: TableItem) -> list[dict]:
+    def _extract_table_cells(self, table: TableItem, doc: DoclingDocument) -> list[dict]:
         """Extract all table cells with their detailed properties"""
         cells = []
-        df = table.export_to_dataframe()
+        df = table.export_to_dataframe(doc)
 
         parent_label = None
 

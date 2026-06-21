@@ -1,6 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import instructor
+import os
 import yaml
 from pydantic import BaseModel
 from enum import Enum
@@ -32,18 +33,23 @@ class SectionSplitter:
     def __init__(
         self,
         config_path: str = "config/section_patterns.yml",
-        vllm_base_url: str = "http://localhost:12434/v1",
-        model_name: str = "hf.co/mlx-community/Qwen2.5-7B-Instruct-4bit",
-        fallback_threshold: float = 0.4
+        #vllm_base_url: str = "http://localhost:12434/v1",
+        #model_name: str = "hf.co/mlx-community/Qwen2.5-7B-Instruct-4bit",
+        fallback_threshold: float = 0.4,
+        base_url: str | None = None,
+        api_key: str | None = None,
+        model_name: str | None = None,
     ):
 
         self.fallback_thrashold = fallback_threshold
-        self.model_name = model_name
+        self.api_key = api_key or os.getenv("LLM_API_KEY", "not-needed")
+        self.base_url = base_url or os.getenv("LLM_API_URL") or None
+        self.model_name = model_name or os.getenv("LLM_SMALL_MODEL")
 
         self._patterns = self._load_patterns(config_path)
 
         self.client = instructor.from_openai(
-            OpenAI(base_url=vllm_base_url, api_key="not-needed"),
+            OpenAI(base_url=self.base_url, api_key=self.api_key),
             mode=instructor.Mode.JSON
         )
 
@@ -120,14 +126,20 @@ class SectionSplitter:
 
         for section_type, patterns in self._patterns.items():
             score = 0.0
+            title_matched = False
             for pattern in patterns:
                 if pattern in title_lower:
                     score += 1.0
+                    title_matched = True
                 elif pattern in content_lower:
                     score += 0.4
             
-            if section_type == SectionType.TABLE_OF_BENEFITS and section.tables:
-                score += 0.5
+            if section_type == SectionType.TABLE_OF_BENEFITS:
+                if section.tables:
+                    score += 0.5  # Strong positive signal: actual table data present
+                elif score > 0 and not title_matched:
+                    # Keyword matched only in body text with no tables → likely a reference, not the real section
+                    score -= 0.6
             
             normalised = min(score, 1.0)
 

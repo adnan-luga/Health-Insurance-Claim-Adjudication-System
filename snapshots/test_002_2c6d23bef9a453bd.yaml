@@ -1,0 +1,27 @@
+policy_id: test_002
+policy_name: Unknown Policy
+insurer_name: Unknown Insurer
+effective_date: '2026-06-21'
+expiry_date: '2026-06-21'
+deductible:
+  annual_amount: '0'
+  currency: AED
+  applies_to: []
+  waived_for: []
+  accumulation_basis: per_member
+out_of_pocket_max:
+  annual_amount: '0'
+  currency: AED
+  includes: []
+  excludes: []
+coverage_rules: []
+exclusions: []
+endorsements: []
+compiled_at: '2026-06-21T12:55:03.458756+00:00'
+source_document_hash: b2261d011552a6994ea83c1f0cd08742010660a29a17d9e3a2780a2746ea7768
+compilation_warnings:
+- 'Benefits extraction failed: Connection error.'
+- 'Exclusions extraction failed: Connection error.'
+- 'Endorsements extraction failed: Connection error.'
+- 'Conditions extraction failed: Connection error.'
+schema_version: 1.0.0
