@@ -24,7 +24,7 @@ ABSOLUTE RULES - VIOLATION MAKES THE OUTPUT USELESS:
    - If only one rate is given, create ONE entry with network_restriction="any".
 5. 'benefit_code' MUST follow CATEGORY_SUBCATEGORY in UPPERCASE (e.g., INPATIENT_SURGERY, OUTPATIENT_CONSULTATION). 
    Never append cardiac, general, specialist, or other medical sub-specialties unless literally present in the table.
-6. Convert percentages: if policy says "10% coinsurance by member", the INSURER pays 90%, so insurer_pays_pct=0.90.
+6. Convert percentages: if policy says "10% coinsurance by member" OR "then 10% coinsurance", this means the member pays 10% and the INSURER pays 90%. Therefore, you MUST set insurer_pays_pct=0.90. NEVER leave insurer_pays_pct as null if a coinsurance percentage is mentioned.
 7. The 'benefit_label' must be the EXACT text from the table cell, not a paraphrase.
 8. If you are uncertain about any value, omit it (leave Optional fields as null) rather than guessing.
 9. If an "(Endorsed)" annotation exists in the table, note it in provenance.verbatim_text ONLY. Do not create a new benefit.

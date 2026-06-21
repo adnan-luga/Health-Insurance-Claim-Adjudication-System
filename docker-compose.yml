@@ -13,5 +13,50 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  ingestion-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingestion
+    container_name: ingestion_api
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      # Override the DB URL inside the docker network to point to the postgres container
+      DATABASE_URL: "postgresql+asyncpg://admin:admin@postgres:5432/policies"
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount snapshots so they are persisted on the host
+      - ./snapshots:/app/snapshots
+
+  adjudication-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.adjudication
+    container_name: adjudication_api
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://admin:admin@postgres:5432/policies"
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./snapshots:/app/snapshots
+
+  streamlit-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: streamlit_ui
+    depends_on:
+      - ingestion-api
+      - adjudication-api
+    ports:
+      - "8501:8501"
+
 volumes:
   postgres_data:

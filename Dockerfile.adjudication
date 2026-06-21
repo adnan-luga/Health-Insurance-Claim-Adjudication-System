@@ -1,0 +1,36 @@
+# Use the official Python image
+FROM python:3.12-slim
+
+# Install system dependencies needed for Docling / RapidOCR and asyncpg
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the dependency files first to cache the uv installation step
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv
+RUN uv sync --frozen --no-dev
+
+# Copy the application code
+COPY config/ config/
+COPY ingestion/ ingestion/
+COPY adjudication/ adjudication/
+
+# Ensure the app creates snapshots directory (for docling)
+RUN mkdir -p snapshots && chmod 777 snapshots
+
+# Expose the port used by adjudication/main.py
+EXPOSE 8081
+
+# Command to run the adjudication microservice
+CMD ["uv", "run", "python", "-m", "adjudication.main"]
