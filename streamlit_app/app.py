@@ -13,15 +13,27 @@ st.set_page_config(page_title="Adjudication Engine", page_icon="🏥", layout="w
 st.markdown("""
 <style>
     .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
+        background-color: #1e2a3a;
+        border-radius: 12px;
+        padding: 24px;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-    .status-approved { color: #2e7d32; font-weight: bold; }
-    .status-partial { color: #f57c00; font-weight: bold; }
-    .status-denied { color: #c62828; font-weight: bold; }
+    .metric-card h3 {
+        color: #a0aab8 !important;
+        font-size: 0.95rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    .metric-card h2 {
+        color: #ffffff !important;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .status-approved { color: #4caf50; font-weight: bold; }
+    .status-partial { color: #ff9800; font-weight: bold; }
+    .status-denied { color: #f44336; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -45,7 +57,7 @@ if page == "Ingestion Dashboard 📥":
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
                 data = {"policy_id": policy_id}
                 try:
-                    response = requests.post(f"{INGESTION_URL}/ingest", files=files, data=data, timeout=120)
+                    response = requests.post(f"{INGESTION_URL}/ingest", files=files, data=data, timeout=300)
                     if response.status_code == 200:
                         res = response.json()
                         st.success("✅ Policy successfully compiled and saved to database!")
@@ -92,7 +104,7 @@ elif page == "Claims Adjudication ⚖️":
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
                 data = {"policy_id": policy_id, "member_id": member_id}
                 try:
-                    response = requests.post(f"{ADJUDICATION_URL}/process-pdf", files=files, data=data, timeout=120)
+                    response = requests.post(f"{ADJUDICATION_URL}/process-pdf", files=files, data=data, timeout=300)
                     if response.status_code == 200:
                         res = response.json()
                         st.success("✅ Claim successfully adjudicated!")
@@ -101,14 +113,16 @@ elif page == "Claims Adjudication ⚖️":
                         st.markdown("### Total Summary")
                         col1, col2, col3 = st.columns(3)
                         
-                        billed_total = sum(r["billed_amount"] for r in res.get("results", []))
+                        billed_total = sum(float(r.get("billed_amount", 0)) for r in res.get("results", []))
                         
                         with col1:
                             st.markdown(f'<div class="metric-card"><h3>Total Billed</h3><h2>AED {billed_total:.2f}</h2></div>', unsafe_allow_html=True)
                         with col2:
-                            st.markdown(f'<div class="metric-card"><h3>Total Insurer Pays</h3><h2 style="color: #2e7d32;">AED {res.get("total_insurer_paid", 0):.2f}</h2></div>', unsafe_allow_html=True)
+                            total_insurer = float(res.get("total_insurer_paid", 0))
+                            st.markdown(f'<div class="metric-card"><h3>Total Insurer Pays</h3><h2 style="color: #2e7d32;">AED {total_insurer:.2f}</h2></div>', unsafe_allow_html=True)
                         with col3:
-                            st.markdown(f'<div class="metric-card"><h3>Total Member Owes</h3><h2 style="color: #c62828;">AED {res.get("total_member_paid", 0):.2f}</h2></div>', unsafe_allow_html=True)
+                            total_member = float(res.get("total_member_paid", 0))
+                            st.markdown(f'<div class="metric-card"><h3>Total Member Owes</h3><h2 style="color: #c62828;">AED {total_member:.2f}</h2></div>', unsafe_allow_html=True)
                         
                         st.markdown("---")
                         st.markdown("### Line Item Details & Audit Trail")

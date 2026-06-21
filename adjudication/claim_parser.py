@@ -1,4 +1,5 @@
 from datetime import date
+import os
 import structlog
 import asyncio
 from adjudication.schemas import ClaimBatch
@@ -41,9 +42,22 @@ class ClaimParser:
         parsed_doc = await asyncio.to_thread(self.doc_parser.parse, file_bytes)
         claim_text = "\n".join([sec.raw_markdown for sec in parsed_doc.sections])
 
-        log.info("claim_parser.extracting_data", model=self.model_name)
+        log.info(
+            "claim_parser.llm_call.start",
+            model=self.model_name,
+            system_prompt_chars=len(CLAIM_EXTRACTION_PROMPT),
+            user_content_chars=len(claim_text),
+        )
 
-        extracted_data = await self.client.chat.completions.create(
+        # Debug: log full prompts when LOG_PROMPTS=true in .env
+        if os.getenv("LOG_PROMPTS", "").lower() == "true":
+            log.debug(
+                "claim_parser.llm_call.prompt_in",
+                system_prompt=CLAIM_EXTRACTION_PROMPT,
+                user_content=f"Extract line items from this invoice:\n\n{claim_text}",
+            )
+
+        extracted_data, completion = await self.client.chat.completions.create_with_completion(
             model=self.model_name,
             response_model=ClaimBatch,
             messages=[
@@ -51,6 +65,21 @@ class ClaimParser:
                 {"role": "user", "content": f"Extract line items from this invoice:\n\n{claim_text}"}
             ]
         )
+
+        log.info(
+            "claim_parser.llm_call.complete",
+            model=self.model_name,
+            input_tokens=completion.usage.prompt_tokens,
+            output_tokens=completion.usage.completion_tokens,
+            total_tokens=completion.usage.total_tokens,
+        )
+
+        # Debug: log the raw structured response
+        if os.getenv("LOG_PROMPTS", "").lower() == "true":
+            log.debug(
+                "claim_parser.llm_call.response_out",
+                extracted_claims=[c.model_dump() for c in extracted_data.claims],
+            )
 
         extracted_data.batch_id = batch_id
         extracted_data.policy_id = policy_id
