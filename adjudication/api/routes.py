@@ -22,6 +22,7 @@ async def get_invoice_parser() -> ClaimParser:
 async def process_pdf_invoice(
     policy_id: str = Form(...),
     member_id: str = Form(...),
+    year_start: str = Form("2025-01-01"),
     file: UploadFile = File(...),
     store: PolicyStore = Depends(get_store),
     engine: AdjudicationEngine = Depends(get_engine),
@@ -42,8 +43,8 @@ async def process_pdf_invoice(
         batch_id=f"BATCH-{file.filename}",
         policy_id=policy_id,
         member_id=member_id,
-        year_start="2026-01-01",
-        year_end="2026-12-31",
+        year_start=year_start,
+        year_end="2025-12-31",
         valid_benefit_codes=valid_codes
     )
     

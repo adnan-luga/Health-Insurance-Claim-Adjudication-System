@@ -93,6 +93,8 @@ elif page == "Claims Adjudication ⚖️":
         with col2:
             member_id = st.text_input("Member ID", value="MEM-987654")
             
+        year_start = st.date_input("Policy Inception Date", value=None)
+            
         uploaded_file = st.file_uploader("Upload Medical Invoice (PDF)", type=["pdf"])
         submit_button = st.form_submit_button("Adjudicate Claim")
         
@@ -102,7 +104,7 @@ elif page == "Claims Adjudication ⚖️":
         else:
             with st.spinner("Extracting invoice and running deterministic adjudication..."):
                 files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
-                data = {"policy_id": policy_id, "member_id": member_id}
+                data = {"policy_id": policy_id, "member_id": member_id, "year_start": str(year_start) if year_start else "2025-01-01"}
                 try:
                     response = requests.post(f"{ADJUDICATION_URL}/process-pdf", files=files, data=data, timeout=300)
                     if response.status_code == 200:

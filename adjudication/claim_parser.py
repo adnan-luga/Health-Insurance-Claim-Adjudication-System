@@ -22,7 +22,7 @@ ABSOLUTE RULES — VIOLATION MAKES THE OUTPUT USELESS:
 3. For 'benefit_code', map the described service to the CLOSEST category from the provided valid list below. Do NOT invent new codes.
    Valid Codes: {valid_codes_str}
 4. For 'network_type': look for the words "in-network", "out-of-network", "panel", or "non-panel". If absent, use "in-network".
-5. 'description' must be a verbatim copy of the service name from the invoice - do not paraphrase.
+5. 'description' MUST be a verbatim copy of the 'Diagnosis / note', 'Diagnosis', or reason for visit from the invoice. Do NOT extract the broad benefit category here. It is critical to extract the exact diagnosis string so exclusions can be evaluated.
 6. 'date' must be the exact service date from the invoice in ISO 8601 format (YYYY-MM-DD).
 7. 'pre_auth_obtained': THIS IS CRITICAL.
    - Set to true ONLY if the invoice/document EXPLICITLY states that pre-authorisation was obtained for this line item.
