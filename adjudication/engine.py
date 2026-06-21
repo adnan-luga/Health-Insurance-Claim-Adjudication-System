@@ -229,11 +229,18 @@ class AdjudicationEngine:
         above_limit_portion = billed - eligible_amount
         member_owes = above_limit_portion + deductible_applied + member_coinsurance + penalty
         
+        # Round final monetary results to 2 decimals
+        TWOPLACES = Decimal("0.01")
+        eligible_amount = eligible_amount.quantize(TWOPLACES)
+        deductible_applied = deductible_applied.quantize(TWOPLACES)
+        insurer_pays = insurer_pays.quantize(TWOPLACES)
+        member_owes = member_owes.quantize(TWOPLACES)
+
         audit_trail.append(AuditLine(
             step="final_calculation", 
-            description=f"Final Calculation. Member owes: AED {above_limit_portion} (over limit) + AED {deductible_applied} (deductible) + AED {member_coinsurance} (coinsurance) + AED {penalty} (penalty) = AED {member_owes}. Insurer pays: AED {insurer_pays}.", 
+            description=f"Final Calculation. Member owes: AED {above_limit_portion.quantize(TWOPLACES)} (over limit) + AED {deductible_applied} (deductible) + AED {member_coinsurance.quantize(TWOPLACES)} (coinsurance) + AED {penalty.quantize(TWOPLACES)} (penalty) = AED {member_owes}. Insurer pays: AED {insurer_pays}.", 
             value_applied=member_owes,
-            running_eligible_amount=after_deductible
+            running_eligible_amount=after_deductible.quantize(TWOPLACES)
         ))
 
         # Step 10: Record to Ledger
@@ -245,7 +252,7 @@ class AdjudicationEngine:
             claim_id=claim.claim_id,
             decision=decision,
             denial_reason=None,
-            billed_amount=billed,
+            billed_amount=billed.quantize(TWOPLACES),
             eligible_amount=eligible_amount,
             deductible_applied=deductible_applied,
             insurer_pays=insurer_pays,
