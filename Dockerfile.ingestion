@@ -1,0 +1,36 @@
+# Use the official Python image
+FROM python:3.12-slim
+
+# Install system dependencies needed for Docling / RapidOCR and asyncpg
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the dependency files first to cache the uv installation step
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv, leveraging BuildKit cache to prevent 900+ second PyTorch downloads
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+# Copy the rest of the application code
+COPY config/ config/
+COPY ingestion/ ingestion/
+
+# Ensure the app creates snapshots directory
+RUN mkdir -p snapshots && chmod 777 snapshots
+
+# Expose the port
+EXPOSE 8080
+
+# Command to run the application (using uv run to use the isolated environment)
+CMD ["uv", "run", "python", "-m", "ingestion.main"]
