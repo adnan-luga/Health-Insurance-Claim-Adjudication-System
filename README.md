@@ -55,6 +55,8 @@ Run the following command to build the images and boot up all four containers:
 docker-compose up -d --build
 ```
 
+> **First boot takes ~30-60 seconds.** The Ingestion and Adjudication containers load heavy ML models (Docling/RapidOCR/PyTorch) on startup. Wait until all 4 containers show **Running** in Docker Desktop or `docker ps` before opening the UI.
+
 ### 4. Using the System
 Once the containers are running, navigate to the Streamlit UI in your browser:
  **[http://localhost:8501](http://localhost:8501)**

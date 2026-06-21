@@ -191,18 +191,40 @@ class AdjudicationEngine:
             running_eligible_amount=after_deductible
         ))
 
-        # Step 8: Pre-authorisation Penalty
+        # Step 8: Pre-authorisation Check
         penalty = Decimal("0.0")
-        if rule.requires_preauth and not claim.pre_auth_obtained:
-            penalty = insurer_pays * Decimal("0.20")  # 20% penalty
-            insurer_pays -= penalty
+        if rule.requires_preauth:
+            if claim.pre_auth_obtained:
+                audit_trail.append(AuditLine(
+                    step="pre_auth_check",
+                    description=f"Pre-authorisation check passed. Policy requires pre-auth for {claim.benefit_code} and claim confirms pre-auth was obtained. No penalty applied.",
+                    value_applied=Decimal("0.0"),
+                    running_eligible_amount=after_deductible
+                ))
+            else:
+                # No pre-auth obtained. Apply a 20% reduction to the insurer's share regardless of coverage tier.
+                penalty = insurer_pays * Decimal("0.20")
+                insurer_pays -= penalty
+                member_coinsurance += penalty  # member absorbs the penalty
+                audit_trail.append(AuditLine(
+                    step="pre_auth_check",
+                    description=(
+                        f"Pre-authorisation MISSING. Policy requires pre-auth for {claim.benefit_code} (see General Conditions). "
+                        f"Claim does not have pre-auth. Applying 20% penalty to insurer share: "
+                        f"penalty = AED {penalty}. Insurer pays reduced to AED {insurer_pays}. "
+                        f"Member absorbs penalty: member owes coinsurance + penalty = AED {member_coinsurance}."
+                    ),
+                    value_applied=Decimal("0.20"),
+                    running_eligible_amount=after_deductible
+                ))
+        else:
             audit_trail.append(AuditLine(
-                step="pre_auth_penalty", 
-                description=f"Checked Pre-authorisation. Policy requires pre-auth for {claim.benefit_code}. Claim did not have pre-auth. Applying 20% penalty to insurer share. Insurer pays reduced by AED {penalty}.", 
-                value_applied=Decimal("0.20"),
+                step="pre_auth_check",
+                description=f"Pre-authorisation not required for {claim.benefit_code}. No check needed.",
+                value_applied=None,
                 running_eligible_amount=after_deductible
             ))
-        
+
         # Step 9: Total Calculation
         above_limit_portion = billed - eligible_amount
         member_owes = above_limit_portion + deductible_applied + member_coinsurance + penalty

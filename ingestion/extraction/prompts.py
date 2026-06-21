@@ -29,6 +29,11 @@ ABSOLUTE RULES - VIOLATION MAKES THE OUTPUT USELESS:
 8. If you are uncertain about any value, omit it (leave Optional fields as null) rather than guessing.
 9. If an "(Endorsed)" annotation exists in the table, note it in provenance.verbatim_text ONLY. Do not create a new benefit.
 10. Ignore document metadata, source codes, or file references (e.g., "GF-SH-B/2025"). These are not benefits.
+11. 'requires_preauth': set to true if ANY of the following apply for that benefit:
+    - The table row contains the words "pre-authorisation required", "pre-auth required", "prior authorisation", or similar.
+    - A referenced General Condition clause (e.g. "see GC3", "subject to GC") states that pre-authorisation is mandatory for that benefit.
+    - The text says "must be authorised", "authorisation required", or "pre-certified" for that service.
+    If pre-auth is explicitly NOT required, set to false. If not mentioned at all, set to false.
 """
 
 EXCLUSIONS_SYSTEM_PROMPT = """
